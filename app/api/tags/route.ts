@@ -6,7 +6,7 @@ export async function GET(_req: NextRequest) {
   await ensureDb()
   const rows = await db
     .selectFrom('tags')
-    .leftJoin('post_tags', 'post_tags.tag_id', 'tags.id')
+    .innerJoin('post_tags', 'post_tags.tag_id', 'tags.id')
     .select(({ fn }) => [
       'tags.name as name',
       fn.count('post_tags.post_id').as('count')

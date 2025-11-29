@@ -1,6 +1,7 @@
 "use client"
 import NextLink from 'next/link'
-import { Box, Heading, Text, Link as ChakraLink } from '@chakra-ui/react'
+import { Box, Heading, Text, Button, IconButton } from '@chakra-ui/react'
+import { LuArrowLeft, LuEdit } from 'react-icons/lu'
 
 function formatDate(d: Date) {
   const y = d.getFullYear()
@@ -15,12 +16,14 @@ export default function PostDetail({ data }: { data: { id: number; title: string
   const tags = data.tags
   return (
     <Box maxW="3xl" mx="auto" px={4} py={10}>
-      <ChakraLink color={{ base: 'blue.600', _dark: 'blue.300' }} mr={3} asChild>
-        <NextLink href="/">← 返回列表</NextLink>
-      </ChakraLink>
-      <ChakraLink color={{ base: 'blue.600', _dark: 'blue.300' }} asChild>
-        <NextLink href={`/posts/${data.id}/edit`}>编辑</NextLink>
-      </ChakraLink>
+      <Box display="flex" gap={3} mb={3}>
+        <Button asChild variant="outline" size="sm">
+          <NextLink href="/"><LuArrowLeft style={{ marginRight: 6 }} /> 返回列表</NextLink>
+        </Button>
+        <IconButton asChild aria-label="编辑" variant="outline" size="sm">
+          <NextLink href={`/posts/${data.id}/edit`}><LuEdit /></NextLink>
+        </IconButton>
+      </Box>
       <Heading as="h1" size="lg" mb={2}>{data.title}</Heading>
       <Text color={{ base: 'gray.600', _dark: 'gray.400' }} mb={3}>
         作者：{data.author || '匿名'}
