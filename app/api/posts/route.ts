@@ -45,15 +45,26 @@ export async function GET(req: NextRequest) {
     countQ = countQ.where('title', 'like', pattern)
   }
   if (tags.length) {
-    listQ = listQ
-      .innerJoin('post_tags', 'post_tags.post_id', 'posts.id')
-      .innerJoin('tags', 'tags.id', 'post_tags.tag_id')
-      .where('tags.name', 'in', tags)
-      .groupBy('posts.id')
-    countQ = countQ
-      .innerJoin('post_tags', 'post_tags.post_id', 'posts.id')
-      .innerJoin('tags', 'tags.id', 'post_tags.tag_id')
-      .where('tags.name', 'in', tags)
+    listQ = listQ.where((eb) =>
+      eb.exists(
+        eb
+          .selectFrom('post_tags')
+          .innerJoin('tags', 'tags.id', 'post_tags.tag_id')
+          .select('post_tags.post_id')
+          .whereRef('post_tags.post_id', '=', eb.ref('posts.id'))
+          .where('tags.name', 'in', tags)
+      )
+    )
+    countQ = countQ.where((eb) =>
+      eb.exists(
+        eb
+          .selectFrom('post_tags')
+          .innerJoin('tags', 'tags.id', 'post_tags.tag_id')
+          .select('post_tags.post_id')
+          .whereRef('post_tags.post_id', '=', eb.ref('posts.id'))
+          .where('tags.name', 'in', tags)
+      )
+    )
   }
 
   const rows = await listQ
@@ -63,9 +74,7 @@ export async function GET(req: NextRequest) {
     .offset(offset)
     .execute()
 
-  const totalRow = await (tags.length
-    ? countQ.select(sql<string>`count(distinct posts.id)`.as('count')).executeTakeFirst()
-    : countQ.select(sql<string>`count(*)`.as('count')).executeTakeFirst())
+  const totalRow = await countQ.select(sql<string>`count(*)`.as('count')).executeTakeFirst()
   const postIds = rows.map((r) => r.id)
   let tagsByPost: Record<number, string[]> = {}
   if (postIds.length) {
