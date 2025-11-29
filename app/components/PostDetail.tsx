@@ -1,7 +1,7 @@
 "use client"
 import NextLink from 'next/link'
 import { Box, Heading, Text, Button, IconButton } from '@chakra-ui/react'
-import { LuArrowLeft, LuEdit } from 'react-icons/lu'
+import { LuArrowLeft, LuPencil } from 'react-icons/lu'
 
 function formatDate(d: Date) {
   const y = d.getFullYear()
@@ -21,7 +21,7 @@ export default function PostDetail({ data }: { data: { id: number; title: string
           <NextLink href="/"><LuArrowLeft style={{ marginRight: 6 }} /> 返回列表</NextLink>
         </Button>
         <IconButton asChild aria-label="编辑" variant="outline" size="sm">
-          <NextLink href={`/posts/${data.id}/edit`}><LuEdit /></NextLink>
+          <NextLink href={`/posts/${data.id}/edit`}><LuPencil /></NextLink>
         </IconButton>
       </Box>
       <Heading as="h1" size="lg" mb={2}>{data.title}</Heading>
