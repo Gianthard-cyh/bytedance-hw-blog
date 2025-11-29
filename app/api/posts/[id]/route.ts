@@ -3,17 +3,22 @@ import { db } from '@/lib/db'
 import { ensureDb } from '@/lib/init'
 import { sql } from 'kysely'
 
-type Params = { params?: { id?: string } }
+type RouteContext = { params: Promise<{ id: string }> }
 
-function parseId(req: NextRequest, params?: { id?: string }) {
-  const idStr = params?.id ?? new URL(req.url).pathname.split('/').pop()
+async function parseId(req: NextRequest, params?: Promise<{ id: string }>) {
+  if (params) {
+    const { id } = await params
+    const n = Number(id)
+    return Number.isFinite(n) ? n : null
+  }
+  const idStr = new URL(req.url).pathname.split('/').pop()
   const id = Number(idStr)
   return Number.isFinite(id) ? id : null
 }
 
-export async function GET(req: NextRequest, ctx: Params) {
+export async function GET(req: NextRequest, ctx: RouteContext) {
   await ensureDb()
-  const id = parseId(req, ctx.params)
+  const id = await parseId(req, ctx.params)
   if (id == null) return new Response('bad id', { status: 400 })
   const row = await db.selectFrom('posts').selectAll().where('id', '=', id).executeTakeFirst()
   if (!row) return new Response('not found', { status: 404 })
@@ -23,19 +28,26 @@ export async function GET(req: NextRequest, ctx: Params) {
     .select(['tags.name as name'])
     .where('post_tags.post_id', '=', id)
     .execute()
+  await db
+    .updateTable('posts')
+    .set({ views: sql`views + 1`, updated_at: sql`now()` })
+    .where('id', '=', id)
+    .execute()
   return Response.json({
     id: row.id,
     title: row.title,
     content: row.content,
+    author: row.author,
+    views: row.views + 1,
     created_at: row.created_at.toISOString(),
     updated_at: row.updated_at.toISOString(),
     tags: tagRows.map((t) => t.name)
   })
 }
 
-export async function PUT(req: NextRequest, ctx: Params) {
+export async function PUT(req: NextRequest, ctx: RouteContext) {
   await ensureDb()
-  const id = parseId(req, ctx.params)
+  const id = await parseId(req, ctx.params)
   if (id == null) return new Response('bad id', { status: 400 })
   let title: string | undefined
   let content: string | undefined
@@ -47,7 +59,7 @@ export async function PUT(req: NextRequest, ctx: Params) {
     if (Array.isArray(body?.tags)) {
       tagsInput = body.tags.map((t: unknown) => String(t || '').trim()).filter(Boolean)
     }
-  } catch (err) {
+  } catch {
     return new Response(JSON.stringify({ error: 'bad_body' }), { status: 400 })
   }
   if (!title && !content && !tagsInput) return new Response(JSON.stringify({ error: 'no_changes' }), { status: 400 })
@@ -81,9 +93,9 @@ export async function PUT(req: NextRequest, ctx: Params) {
   return new Response(null, { status: 204 })
 }
 
-export async function DELETE(req: NextRequest, ctx: Params) {
+export async function DELETE(req: NextRequest, ctx: RouteContext) {
   await ensureDb()
-  const id = parseId(req, ctx.params)
+  const id = await parseId(req, ctx.params)
   if (id == null) return new Response('bad id', { status: 400 })
   const res = await db.deleteFrom('posts').where('id', '=', id).executeTakeFirst()
   if (res.numDeletedRows === BigInt(0)) return new Response('not found', { status: 404 })

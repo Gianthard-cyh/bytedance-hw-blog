@@ -1,4 +1,3 @@
-import { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 import { ensureDb } from '@/lib/init'
 import { NextRequest } from 'next/server'
@@ -16,6 +15,8 @@ interface Post {
   id: number
   title: string
   content: string
+  author: string | null
+  views: number
   created_at: string
   updated_at: string
   tags: string[]
@@ -71,6 +72,8 @@ export async function GET(req: NextRequest) {
     id: row.id,
     title: row.title,
     content: row.content,
+    author: row.author,
+    views: row.views,
     created_at: row.created_at.toISOString(),
     updated_at: row.updated_at.toISOString(),
     tags: tagsByPost[row.id] ?? []
@@ -86,30 +89,53 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   await ensureDb()
-  const body = await req.json()
-  const title = String(body?.title || '').trim()
-  const content = String(body?.content || '').trim()
-  const tagsInput = Array.isArray(body?.tags) ? body.tags.map((t: unknown) => String(t || '').trim()).filter(Boolean) : []
-  if (!title || !content) {
+  let title: string
+  let content: string
+  let tagsInput: string[] = []
+  try {
+    const body = await req.json()
+    title = String(body?.title || '').trim()
+    content = String(body?.content || '').trim()
+    tagsInput = Array.isArray(body?.tags) ? body.tags.map((t: unknown) => String(t || '').trim()).filter(Boolean) : []
+    if (!title || !content) {
+      return new Response(JSON.stringify({ error: 'invalid_payload' }), { status: 400 })
+    }
+  } catch {
     return new Response(JSON.stringify({ error: 'invalid_payload' }), { status: 400 })
   }
-  const inserted = await db.insertInto('posts').values({ title, content }).returning('id').executeTakeFirst()
-  const postId = inserted?.id
-  if (postId && tagsInput.length) {
-    const uniqueNames = Array.from(new Set(tagsInput))
-    const tagIds: number[] = []
-    for (const name of uniqueNames) {
-      const up = await db
-        .insertInto('tags')
-        .values({ name })
-        .onConflict((oc) => oc.column('name').doUpdateSet({ name }))
+  try {
+    const postId = await db.transaction().execute(async (trx) => {
+      const inserted = await trx
+        .insertInto('posts')
+        .values({ title, content })
         .returning('id')
         .executeTakeFirst()
-      if (up?.id) tagIds.push(up.id)
-    }
-    if (tagIds.length) {
-      await db.insertInto('post_tags').values(tagIds.map((tagId) => ({ post_id: postId, tag_id: tagId }))).execute()
-    }
+      const id = inserted?.id
+      if (!id) throw new Error('insert_failed')
+
+      if (tagsInput.length) {
+        const uniqueNames = Array.from(new Set(tagsInput))
+        const tagIds: number[] = []
+        for (const name of uniqueNames) {
+          const up = await trx
+            .insertInto('tags')
+            .values({ name })
+            .onConflict((oc) => oc.column('name').doUpdateSet({ name }))
+            .returning('id')
+            .executeTakeFirst()
+          if (up?.id) tagIds.push(up.id)
+        }
+        if (tagIds.length) {
+          await trx
+            .insertInto('post_tags')
+            .values(tagIds.map((tagId) => ({ post_id: id, tag_id: tagId })))
+            .execute()
+        }
+      }
+      return id
+    })
+    return new Response(JSON.stringify({ success: true, id: postId }), { status: 201 })
+  } catch {
+    return new Response(JSON.stringify({ error: 'create_failed' }), { status: 500 })
   }
-  return new Response(JSON.stringify({ success: true }), { status: 201 })
 }

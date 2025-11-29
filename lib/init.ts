@@ -13,6 +13,8 @@ export async function ensureDb() {
       .addColumn('id', 'serial', (col) => col.primaryKey())
       .addColumn('title', 'text', (col) => col.notNull())
       .addColumn('content', 'text', (col) => col.notNull())
+      .addColumn('author', 'text')
+      .addColumn('views', 'integer', (col) => col.notNull().defaultTo(sql`0`))
       .addColumn('created_at', 'timestamp', (col) => col.notNull().defaultTo(sql`now()`))
       .addColumn('updated_at', 'timestamp', (col) => col.notNull().defaultTo(sql`now()`))
       .addColumn('deleted_at', 'timestamp', (col) => col.defaultTo(null))

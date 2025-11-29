@@ -6,6 +6,8 @@ interface PostsTable {
   id: Generated<number>
   title: string
   content: string
+  author: string | null
+  views: Generated<number>
   created_at: Generated<Date>
   updated_at: Generated<Date>
   deleted_at: Generated<Date | null>
