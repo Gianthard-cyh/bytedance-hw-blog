@@ -11,8 +11,22 @@ interface PostsTable {
   deleted_at: Generated<Date | null>
 }
 
+interface TagsTable {
+  id: Generated<number>
+  name: string
+  created_at: Generated<Date>
+}
+
+interface PostTagsTable {
+  post_id: number
+  tag_id: number
+}
+
+
 interface DB {
   posts: PostsTable
+  tags: TagsTable
+  post_tags: PostTagsTable
 }
 
 const pgUrl = process.env.DATABASE_URL

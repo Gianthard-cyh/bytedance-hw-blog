@@ -17,6 +17,8 @@ interface Post {
   title: string
   content: string
   created_at: string
+  updated_at: string
+  tags: string[]
 }
 
 type GetPostListResponse = PagedResponse<Post>
@@ -49,12 +51,29 @@ export async function GET(req: NextRequest) {
   const totalRow = await countQ
     .select(sql<string>`count(*)`.as('count'))
     .executeTakeFirst()
+  const postIds = rows.map((r) => r.id)
+  let tagsByPost: Record<number, string[]> = {}
+  if (postIds.length) {
+    const tagRows = await db
+      .selectFrom('post_tags')
+      .innerJoin('tags', 'tags.id', 'post_tags.tag_id')
+      .select(['post_tags.post_id as post_id', 'tags.name as name'])
+      .where('post_tags.post_id', 'in', postIds)
+      .execute()
+    tagsByPost = tagRows.reduce((acc, tr) => {
+      const arr = acc[tr.post_id] ?? []
+      arr.push(tr.name)
+      acc[tr.post_id] = arr
+      return acc
+    }, {} as Record<number, string[]>)
+  }
   const trimmedRows = rows.map((row) => ({
     id: row.id,
     title: row.title,
     content: row.content,
     created_at: row.created_at.toISOString(),
     updated_at: row.updated_at.toISOString(),
+    tags: tagsByPost[row.id] ?? []
   }))
   const res: GetPostListResponse = {
     items: trimmedRows,
@@ -70,9 +89,27 @@ export async function POST(req: NextRequest) {
   const body = await req.json()
   const title = String(body?.title || '').trim()
   const content = String(body?.content || '').trim()
+  const tagsInput = Array.isArray(body?.tags) ? body.tags.map((t: unknown) => String(t || '').trim()).filter(Boolean) : []
   if (!title || !content) {
     return new Response(JSON.stringify({ error: 'invalid_payload' }), { status: 400 })
   }
-  await db.insertInto('posts').values({ title, content}).execute()
+  const inserted = await db.insertInto('posts').values({ title, content }).returning('id').executeTakeFirst()
+  const postId = inserted?.id
+  if (postId && tagsInput.length) {
+    const uniqueNames = Array.from(new Set(tagsInput))
+    const tagIds: number[] = []
+    for (const name of uniqueNames) {
+      const up = await db
+        .insertInto('tags')
+        .values({ name })
+        .onConflict((oc) => oc.column('name').doUpdateSet({ name }))
+        .returning('id')
+        .executeTakeFirst()
+      if (up?.id) tagIds.push(up.id)
+    }
+    if (tagIds.length) {
+      await db.insertInto('post_tags').values(tagIds.map((tagId) => ({ post_id: postId, tag_id: tagId }))).execute()
+    }
+  }
   return new Response(JSON.stringify({ success: true }), { status: 201 })
 }
