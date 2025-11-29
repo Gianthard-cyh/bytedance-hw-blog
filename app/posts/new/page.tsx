@@ -1,24 +1,21 @@
 "use client"
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Box, Heading, Input, Textarea, Button, Text } from '@chakra-ui/react'
+import { Box, Heading, Input, Textarea, Button, Text, TagsInput } from '@chakra-ui/react'
 import { FormControl, FormLabel } from '@chakra-ui/form-control'
 
 export default function NewPostPage() {
   const router = useRouter()
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
-  const [tagsInput, setTagsInput] = useState('')
+  const [tags, setTags] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
-    const tags = tagsInput
-      .split(',')
-      .map((t) => t.trim())
-      .filter(Boolean)
+    const tagsPayload = tags
     if (!title.trim() || !content.trim()) {
       setError('标题和内容不能为空')
       return
@@ -28,7 +25,7 @@ export default function NewPostPage() {
       const res = await fetch('/api/posts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: title.trim(), content: content.trim(), tags })
+        body: JSON.stringify({ title: title.trim(), content: content.trim(), tags: tagsPayload })
       })
       if (!res.ok) {
         const unknownData: unknown = await res.json().catch(() => ({}))
@@ -62,8 +59,13 @@ export default function NewPostPage() {
           <Textarea value={content} onChange={(e) => setContent(e.target.value)} placeholder="请输入内容" rows={10} />
         </FormControl>
         <FormControl mb={4}>
-          <FormLabel>标签（逗号分隔）</FormLabel>
-          <Input value={tagsInput} onChange={(e) => setTagsInput(e.target.value)} placeholder="如：前端, Kysely, PostgreSQL" />
+          <FormLabel>标签</FormLabel>
+          <TagsInput.Root value={tags} onValueChange={(d) => setTags(d.value)} size="md" addOnPaste delimiter="," >
+            <TagsInput.Control>
+              <TagsInput.Items />
+              <TagsInput.Input placeholder="输入或粘贴标签，回车添加" />
+            </TagsInput.Control>
+          </TagsInput.Root>
         </FormControl>
         <Button type="submit" colorPalette="blue" disabled={loading}>{loading ? '创建中…' : '创建'}</Button>
       </form>

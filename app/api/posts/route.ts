@@ -30,6 +30,9 @@ export async function GET(req: NextRequest) {
   const page = Number(searchParams.get('page') ?? '1')
   const pageSize = Number(searchParams.get('pageSize') ?? '10')
   const q = (searchParams.get('q') ?? '').trim()
+  const tag = (searchParams.get('tag') ?? '').trim()
+  const tagsParam = searchParams.getAll('tags').map((t) => (t ?? '').trim()).filter(Boolean)
+  const tags = Array.from(new Set([...(tag ? [tag] : []), ...tagsParam]))
   const safePage = Number.isFinite(page) && page > 0 ? page : 1
   const safeSize = Number.isFinite(pageSize) && pageSize > 0 && pageSize <= 100 ? pageSize : 10
   const offset = (safePage - 1) * safeSize
@@ -41,6 +44,17 @@ export async function GET(req: NextRequest) {
     listQ = listQ.where('title', 'like', pattern)
     countQ = countQ.where('title', 'like', pattern)
   }
+  if (tags.length) {
+    listQ = listQ
+      .innerJoin('post_tags', 'post_tags.post_id', 'posts.id')
+      .innerJoin('tags', 'tags.id', 'post_tags.tag_id')
+      .where('tags.name', 'in', tags)
+      .groupBy('posts.id')
+    countQ = countQ
+      .innerJoin('post_tags', 'post_tags.post_id', 'posts.id')
+      .innerJoin('tags', 'tags.id', 'post_tags.tag_id')
+      .where('tags.name', 'in', tags)
+  }
 
   const rows = await listQ
     .selectAll()
@@ -49,9 +63,9 @@ export async function GET(req: NextRequest) {
     .offset(offset)
     .execute()
 
-  const totalRow = await countQ
-    .select(sql<string>`count(*)`.as('count'))
-    .executeTakeFirst()
+  const totalRow = await (tags.length
+    ? countQ.select(sql<string>`count(distinct posts.id)`.as('count')).executeTakeFirst()
+    : countQ.select(sql<string>`count(*)`.as('count')).executeTakeFirst())
   const postIds = rows.map((r) => r.id)
   let tagsByPost: Record<number, string[]> = {}
   if (postIds.length) {
