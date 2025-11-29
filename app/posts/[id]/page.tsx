@@ -25,6 +25,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
   return (
     <main className="max-w-3xl mx-auto my-10 px-4 font-sans">
       <Link href="/" className="inline-block mb-3 text-blue-600 hover:underline">← 返回列表</Link>
+      <Link href={`/posts/${data.id}/edit`} className="inline-block mb-3 ml-3 text-blue-600 hover:underline">编辑</Link>
       <h1 className="text-2xl md:text-3xl mb-2">{data.title}</h1>
       <div className="text-gray-600 mb-3 space-x-3">
         <span>作者：{data.author || '匿名'}</span>

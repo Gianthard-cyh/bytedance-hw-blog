@@ -21,6 +21,7 @@ export default async function Home() {
   return (
     <main className="max-w-3xl mx-auto my-10 px-4 font-sans">
       <h1 className="text-2xl md:text-3xl mb-3">文章列表</h1>
+      <div className="mb-4"><Link href="/posts/new" className="text-blue-600 hover:underline">新建帖子</Link></div>
       <ul className="list-none p-0 m-0">
         {rows.map((p) => {
           const excerpt = p.content.length > 120 ? p.content.slice(0, 120) + '…' : p.content
