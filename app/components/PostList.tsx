@@ -1,6 +1,7 @@
 "use client"
 import NextLink from 'next/link'
 import { Box, Heading, Flex, Text, Link as ChakraLink, Button, Input, HStack, IconButton, Pagination, ButtonGroup } from '@chakra-ui/react'
+import PageContainer from './PageContainer'
 import { useEffect, useMemo, useState } from 'react'
 import { LuChevronLeft, LuChevronRight } from 'react-icons/lu'
 
@@ -47,7 +48,7 @@ export default function PostList() {
   const maxPage = useMemo(() => Math.max(1, Math.ceil(total / pageSize)), [total, pageSize])
 
   return (
-    <Box maxW="3xl" mx="auto" px={4} py={10}>
+    <PageContainer>
       <Heading as="h1" size="lg" mb={3}>文章列表</Heading>
       <Box mb={4}>
         <Button colorPalette="blue" asChild>
@@ -113,7 +114,7 @@ export default function PostList() {
           const excerpt = p.content.length > 120 ? p.content.slice(0, 120) + '…' : p.content
           const tags = p.tags
           return (
-            <Box key={p.id} py={4} borderBottomWidth="1px" borderColor="gray.200" _dark={{ borderColor: 'gray.700' }}>
+            <Box key={p.id} mb={4} p={4} borderWidth="1px" borderRadius="xl" boxShadow="sm" bg={{ base: 'white', _dark: 'gray.800' }}>
               <Flex justify="space-between" gap={3}>
                 <ChakraLink color={{ base: 'blue.600', _dark: 'blue.300' }} fontWeight="semibold" asChild>
                   <NextLink href={`/posts/${p.id}`}>{p.title}</NextLink>
@@ -156,6 +157,6 @@ export default function PostList() {
           </ButtonGroup>
         </Pagination.Root>
       </Box>
-    </Box>
+    </PageContainer>
   )
 }

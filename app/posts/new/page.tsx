@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Box, Heading, Input, Textarea, Button, Text, TagsInput } from '@chakra-ui/react'
+import PageContainer from '@/app/components/PageContainer'
 import { FormControl, FormLabel } from '@chakra-ui/form-control'
 
 export default function NewPostPage() {
@@ -46,17 +47,17 @@ export default function NewPostPage() {
   }
 
   return (
-    <Box maxW="3xl" mx="auto" px={4} py={10}>
+    <PageContainer>
       <Heading as="h1" size="lg" mb={4}>新建帖子</Heading>
       {error && <Text mb={3} color={{ base: 'red.600', _dark: 'red.400' }}>{error}</Text>}
-      <form onSubmit={handleSubmit}>
+      <Box as="form" onSubmit={handleSubmit} p={5} borderWidth="1px" borderRadius="xl" boxShadow="sm" bg={{ base: 'white', _dark: 'gray.800' }}>
         <FormControl mb={4}>
           <FormLabel>标题</FormLabel>
-          <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="请输入标题" />
+          <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="请输入标题" borderRadius="xl" />
         </FormControl>
         <FormControl mb={4}>
           <FormLabel>内容</FormLabel>
-          <Textarea value={content} onChange={(e) => setContent(e.target.value)} placeholder="请输入内容" rows={10} />
+          <Textarea value={content} onChange={(e) => setContent(e.target.value)} placeholder="请输入内容" rows={10} borderRadius="xl" />
         </FormControl>
         <FormControl mb={4}>
           <FormLabel>标签</FormLabel>
@@ -67,8 +68,8 @@ export default function NewPostPage() {
             </TagsInput.Control>
           </TagsInput.Root>
         </FormControl>
-        <Button type="submit" colorPalette="blue" disabled={loading}>{loading ? '创建中…' : '创建'}</Button>
-      </form>
-    </Box>
+        <Button type="submit" colorPalette="blue" disabled={loading} borderRadius="xl">{loading ? '创建中…' : '创建'}</Button>
+      </Box>
+    </PageContainer>
   )
 }

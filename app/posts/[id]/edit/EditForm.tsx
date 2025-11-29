@@ -1,7 +1,7 @@
 "use client"
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Input, Textarea, Button, Text, TagsInput } from '@chakra-ui/react'
+import { Box, Input, Textarea, Button, Text, TagsInput } from '@chakra-ui/react'
 import { FormControl, FormLabel } from '@chakra-ui/form-control'
 
 export default function EditForm({ id, initial }: { id: number; initial: { title: string; content: string; tags: string[] } }) {
@@ -45,14 +45,14 @@ export default function EditForm({ id, initial }: { id: number; initial: { title
   }
 
   return (
-    <form onSubmit={handleSubmit}>
+    <Box as="form" onSubmit={handleSubmit} p={5} borderWidth="1px" borderRadius="xl" boxShadow="sm" bg={{ base: 'white', _dark: 'gray.800' }}>
       <FormControl mb={4}>
         <FormLabel>标题</FormLabel>
-        <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="请输入标题" />
+        <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="请输入标题" borderRadius="xl" />
       </FormControl>
       <FormControl mb={4}>
         <FormLabel>内容</FormLabel>
-        <Textarea value={content} onChange={(e) => setContent(e.target.value)} placeholder="请输入内容" rows={10} />
+        <Textarea value={content} onChange={(e) => setContent(e.target.value)} placeholder="请输入内容" rows={10} borderRadius="xl" />
       </FormControl>
       <FormControl mb={4}>
         <FormLabel>标签</FormLabel>
@@ -64,7 +64,7 @@ export default function EditForm({ id, initial }: { id: number; initial: { title
         </TagsInput.Root>
       </FormControl>
       {error && <Text color={{ base: 'red.600', _dark: 'red.400' }}>{error}</Text>}
-      <Button type="submit" colorPalette="blue" disabled={loading}>{loading ? '保存中…' : '保存修改'}</Button>
-    </form>
+      <Button type="submit" colorPalette="blue" disabled={loading} borderRadius="xl">{loading ? '保存中…' : '保存修改'}</Button>
+    </Box>
   )
 }

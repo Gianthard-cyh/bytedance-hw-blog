@@ -1,6 +1,7 @@
 "use client"
 import NextLink from 'next/link'
 import { Box, Heading, Text, Button, IconButton } from '@chakra-ui/react'
+import PageContainer from './PageContainer'
 import { LuArrowLeft, LuPencil } from 'react-icons/lu'
 
 function formatDate(d: Date) {
@@ -15,7 +16,7 @@ function formatDate(d: Date) {
 export default function PostDetail({ data }: { data: { id: number; title: string; content: string; author: string | null; views: number; created_at: string; updated_at: string; tags: string[] } }) {
   const tags = data.tags
   return (
-    <Box maxW="3xl" mx="auto" px={4} py={10}>
+    <PageContainer>
       <Box display="flex" gap={3} mb={3}>
         <Button asChild variant="outline" size="sm">
           <NextLink href="/"><LuArrowLeft style={{ marginRight: 6 }} /> 返回列表</NextLink>
@@ -24,14 +25,16 @@ export default function PostDetail({ data }: { data: { id: number; title: string
           <NextLink href={`/posts/${data.id}/edit`}><LuPencil /></NextLink>
         </IconButton>
       </Box>
-      <Heading as="h1" size="lg" mb={2}>{data.title}</Heading>
-      <Text color={{ base: 'gray.600', _dark: 'gray.400' }} mb={3}>
-        作者：{data.author || '匿名'}
-        {' · '}发布时间：{formatDate(new Date(data.created_at))}
-        {' · '}阅读：{data.views}
-      </Text>
-      <Text whiteSpace="pre-wrap" lineHeight="tall">{data.content}</Text>
-      <Text mt={4} color={{ base: 'gray.500', _dark: 'gray.400' }}>标签：{tags.join('、') || '无'}</Text>
-    </Box>
+      <Box p={5} borderWidth="1px" borderRadius="xl" boxShadow="sm" bg={{ base: 'white', _dark: 'gray.800' }}>
+        <Heading as="h1" size="lg" mb={2}>{data.title}</Heading>
+        <Text color={{ base: 'gray.600', _dark: 'gray.400' }} mb={3}>
+          作者：{data.author || '匿名'}
+          {' · '}发布时间：{formatDate(new Date(data.created_at))}
+          {' · '}阅读：{data.views}
+        </Text>
+        <Text whiteSpace="pre-wrap" lineHeight="tall">{data.content}</Text>
+        <Text mt={4} color={{ base: 'gray.500', _dark: 'gray.400' }}>标签：{tags.join('、') || '无'}</Text>
+      </Box>
+    </PageContainer>
   )
 }
