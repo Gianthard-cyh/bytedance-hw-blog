@@ -49,9 +49,9 @@ export default function NewPostPage() {
   }
 
   return (
-    <Box maxW="3xl" mx="auto" px={4} py={10} fontFamily="sans-serif">
+    <Box maxW="3xl" mx="auto" px={4} py={10}>
       <Heading as="h1" size="lg" mb={4}>新建帖子</Heading>
-      {error && <Text mb={3} color="red.600">{error}</Text>}
+      {error && <Text mb={3} color={{ base: 'red.600', _dark: 'red.400' }}>{error}</Text>}
       <form onSubmit={handleSubmit}>
         <FormControl mb={4}>
           <FormLabel>标题</FormLabel>

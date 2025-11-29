@@ -61,7 +61,7 @@ export default function EditForm({ id, initial }: { id: number; initial: { title
         <FormLabel>标签（逗号分隔）</FormLabel>
         <Input value={tagsInput} onChange={(e) => setTagsInput(e.target.value)} placeholder="如：前端, Kysely, PostgreSQL" />
       </FormControl>
-      {error && <Text color="red.600">{error}</Text>}
+      {error && <Text color={{ base: 'red.600', _dark: 'red.400' }}>{error}</Text>}
       <Button type="submit" colorPalette="blue" disabled={loading}>{loading ? '保存中…' : '保存修改'}</Button>
     </form>
   )
