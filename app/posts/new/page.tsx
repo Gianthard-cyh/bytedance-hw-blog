@@ -1,6 +1,8 @@
 "use client"
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { Box, Heading, Input, Textarea, Button, Text } from '@chakra-ui/react'
+import { FormControl, FormLabel } from '@chakra-ui/form-control'
 
 export default function NewPostPage() {
   const router = useRouter()
@@ -47,47 +49,24 @@ export default function NewPostPage() {
   }
 
   return (
-    <main className="max-w-3xl mx-auto my-10 px-4 font-sans">
-      <h1 className="text-2xl md:text-3xl mb-4">新建帖子</h1>
-      {error && <div className="mb-3 text-red-600">{error}</div>}
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-sm text-gray-700 mb-1">标题</label>
-          <input
-            className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring focus:ring-blue-200"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="请输入标题"
-          />
-        </div>
-        <div>
-          <label className="block text-sm text-gray-700 mb-1">内容</label>
-          <textarea
-            className="w-full border border-gray-300 rounded px-3 py-2 h-48 leading-relaxed focus:outline-none focus:ring focus:ring-blue-200"
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            placeholder="请输入内容"
-          />
-        </div>
-        <div>
-          <label className="block text-sm text-gray-700 mb-1">标签（逗号分隔）</label>
-          <input
-            className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring focus:ring-blue-200"
-            value={tagsInput}
-            onChange={(e) => setTagsInput(e.target.value)}
-            placeholder="如：前端, Kysely, PostgreSQL"
-          />
-        </div>
-        <div className="flex gap-3">
-          <button
-            type="submit"
-            disabled={loading}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-60"
-          >
-            {loading ? '创建中…' : '创建'}
-          </button>
-        </div>
+    <Box maxW="3xl" mx="auto" px={4} py={10} fontFamily="sans-serif">
+      <Heading as="h1" size="lg" mb={4}>新建帖子</Heading>
+      {error && <Text mb={3} color="red.600">{error}</Text>}
+      <form onSubmit={handleSubmit}>
+        <FormControl mb={4}>
+          <FormLabel>标题</FormLabel>
+          <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="请输入标题" />
+        </FormControl>
+        <FormControl mb={4}>
+          <FormLabel>内容</FormLabel>
+          <Textarea value={content} onChange={(e) => setContent(e.target.value)} placeholder="请输入内容" rows={10} />
+        </FormControl>
+        <FormControl mb={4}>
+          <FormLabel>标签（逗号分隔）</FormLabel>
+          <Input value={tagsInput} onChange={(e) => setTagsInput(e.target.value)} placeholder="如：前端, Kysely, PostgreSQL" />
+        </FormControl>
+        <Button type="submit" colorPalette="blue" disabled={loading}>{loading ? '创建中…' : '创建'}</Button>
       </form>
-    </main>
+    </Box>
   )
 }

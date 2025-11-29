@@ -1,5 +1,6 @@
-import Link from 'next/link'
+import NextLink from 'next/link'
 import { headers } from 'next/headers'
+import { Box, Heading, Text, Link as ChakraLink } from '@chakra-ui/react'
 
 function formatDate(d: Date) {
   const y = d.getFullYear()
@@ -23,17 +24,21 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
   const data = await res.json() as { id: number; title: string; content: string; author: string | null; views: number; created_at: string; updated_at: string; tags: string[] }
   const tags = data.tags
   return (
-    <main className="max-w-3xl mx-auto my-10 px-4 font-sans">
-      <Link href="/" className="inline-block mb-3 text-blue-600 hover:underline">← 返回列表</Link>
-      <Link href={`/posts/${data.id}/edit`} className="inline-block mb-3 ml-3 text-blue-600 hover:underline">编辑</Link>
-      <h1 className="text-2xl md:text-3xl mb-2">{data.title}</h1>
-      <div className="text-gray-600 mb-3 space-x-3">
-        <span>作者：{data.author || '匿名'}</span>
-        <span>发布时间：{formatDate(new Date(data.created_at))}</span>
-        <span>阅读：{data.views}</span>
-      </div>
-      <div className="whitespace-pre-wrap leading-relaxed">{data.content}</div>
-      <div className="mt-4 text-gray-500">标签：{tags.join('、') || '无'}</div>
-    </main>
+    <Box maxW="3xl" mx="auto" px={4} py={10} fontFamily="sans-serif">
+      <ChakraLink color="blue.600" mr={3} asChild>
+        <NextLink href="/">← 返回列表</NextLink>
+      </ChakraLink>
+      <ChakraLink color="blue.600" asChild>
+        <NextLink href={`/posts/${data.id}/edit`}>编辑</NextLink>
+      </ChakraLink>
+      <Heading as="h1" size="lg" mb={2}>{data.title}</Heading>
+      <Text color="gray.600" mb={3}>
+        作者：{data.author || '匿名'}
+        {' · '}发布时间：{formatDate(new Date(data.created_at))}
+        {' · '}阅读：{data.views}
+      </Text>
+      <Text whiteSpace="pre-wrap" lineHeight="tall">{data.content}</Text>
+      <Text mt={4} color="gray.500">标签：{tags.join('、') || '无'}</Text>
+    </Box>
   )
 }

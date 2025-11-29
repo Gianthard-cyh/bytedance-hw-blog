@@ -1,6 +1,8 @@
 "use client"
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { Input, Textarea, Button, Text } from '@chakra-ui/react'
+import { FormControl, FormLabel } from '@chakra-ui/form-control'
 
 export default function EditForm({ id, initial }: { id: number; initial: { title: string; content: string; tags: string[] } }) {
   const router = useRouter()
@@ -46,45 +48,21 @@ export default function EditForm({ id, initial }: { id: number; initial: { title
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <label className="block text-sm text-gray-700 mb-1">标题</label>
-        <input
-          className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring focus:ring-blue-200"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="请输入标题"
-        />
-      </div>
-      <div>
-        <label className="block text-sm text-gray-700 mb-1">内容</label>
-        <textarea
-          className="w-full border border-gray-300 rounded px-3 py-2 h-48 leading-relaxed focus:outline-none focus:ring focus:ring-blue-200"
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          placeholder="请输入内容"
-        />
-      </div>
-      <div>
-        <label className="block text-sm text-gray-700 mb-1">标签（逗号分隔）</label>
-        <input
-          className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring focus:ring-blue-200"
-          value={tagsInput}
-          onChange={(e) => setTagsInput(e.target.value)}
-          placeholder="如：前端, Kysely, PostgreSQL"
-        />
-      </div>
-      {error && <div className="text-red-600">{error}</div>}
-      <div className="flex gap-3">
-        <button
-          type="submit"
-          disabled={loading}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-60"
-        >
-          {loading ? '保存中…' : '保存修改'}
-        </button>
-      </div>
+    <form onSubmit={handleSubmit}>
+      <FormControl mb={4}>
+        <FormLabel>标题</FormLabel>
+        <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="请输入标题" />
+      </FormControl>
+      <FormControl mb={4}>
+        <FormLabel>内容</FormLabel>
+        <Textarea value={content} onChange={(e) => setContent(e.target.value)} placeholder="请输入内容" rows={10} />
+      </FormControl>
+      <FormControl mb={4}>
+        <FormLabel>标签（逗号分隔）</FormLabel>
+        <Input value={tagsInput} onChange={(e) => setTagsInput(e.target.value)} placeholder="如：前端, Kysely, PostgreSQL" />
+      </FormControl>
+      {error && <Text color="red.600">{error}</Text>}
+      <Button type="submit" colorPalette="blue" disabled={loading}>{loading ? '保存中…' : '保存修改'}</Button>
     </form>
   )
 }
-
