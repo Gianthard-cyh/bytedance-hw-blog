@@ -1,5 +1,6 @@
 import { headers } from 'next/headers'
 import PostDetail from '@/app/components/PostDetail'
+import type { PostDetail as PostDetailType } from '@/types/post'
 
 function formatDate(d: Date) {
   const y = d.getFullYear()
@@ -20,6 +21,6 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
   const base = `${proto}://${host}`
   const res = await fetch(`${base}/api/posts/${id}`, { cache: 'no-store' })
   if (!res.ok) return <main>not found</main>
-  const data = await res.json() as { id: number; title: string; content: string; author: string | null; views: number; created_at: string; updated_at: string; tags: string[] }
+  const data = await res.json() as PostDetailType
   return <PostDetail data={data} />
 }

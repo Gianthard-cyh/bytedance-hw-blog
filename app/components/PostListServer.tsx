@@ -1,5 +1,6 @@
 import NextLink from 'next/link'
 import { Box, Heading, Flex, Text, Link as ChakraLink, HStack, Tag } from '@chakra-ui/react'
+import type { PostListItem } from '@/types/post'
 
 function formatDate(d: Date) {
   const y = d.getFullYear()
@@ -10,11 +11,7 @@ function formatDate(d: Date) {
   return `${y}-${m}-${day} ${hh}:${mm}`
 }
 
-export default function PostListServer({
-  items,
-}: {
-  items: { id: number; title: string; content: string; author: string | null; views: number; created_at: string; tags: string[] }[]
-}) {
+export default function PostListServer({ items }: { items: PostListItem[] }) {
   return (
     <Box>
       {items.map((p) => {
@@ -30,6 +27,9 @@ export default function PostListServer({
             </Flex>
             <Text color={{ base: 'gray.700', _dark: 'gray.200' }} mt={1.5}>{excerpt}</Text>
             <HStack mt={2} gap={2} color={{ base: 'gray.500', _dark: 'gray.400' }} flexWrap="wrap">
+              <Tag.Root variant="solid" size="sm" colorPalette={p.status === 1 ? 'green' : 'gray'}>
+                <Tag.Label>{p.status === 1 ? '已发布' : '草稿'}</Tag.Label>
+              </Tag.Root>
               <Text>作者：{p.author || '匿名'}</Text>
               <Text>阅读：{p.views}</Text>
               {tags.length > 0 ? (
@@ -50,4 +50,3 @@ export default function PostListServer({
     </Box>
   )
 }
-

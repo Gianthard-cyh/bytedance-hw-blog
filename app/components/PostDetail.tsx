@@ -3,6 +3,8 @@ import NextLink from 'next/link'
 import { Box, Heading, Text, Button, IconButton } from '@chakra-ui/react'
 import PageContainer from './PageContainer'
 import { LuArrowLeft, LuPencil } from 'react-icons/lu'
+import { useRouter } from 'next/navigation'
+import type { PostDetail as PostDetailType } from '@/types/post'
 
 function formatDate(d: Date) {
   const y = d.getFullYear()
@@ -13,7 +15,8 @@ function formatDate(d: Date) {
   return `${y}-${m}-${day} ${hh}:${mm}`
 }
 
-export default function PostDetail({ data }: { data: { id: number; title: string; content: string; author: string | null; views: number; created_at: string; updated_at: string; tags: string[] } }) {
+export default function PostDetail({ data }: { data: PostDetailType }) {
+  const router = useRouter()
   const tags = data.tags
   return (
     <PageContainer>
@@ -24,6 +27,15 @@ export default function PostDetail({ data }: { data: { id: number; title: string
         <IconButton asChild aria-label="编辑" variant="outline" size="sm">
           <NextLink href={`/posts/${data.id}/edit`}><LuPencil /></NextLink>
         </IconButton>
+        <Button size="sm" onClick={async () => {
+          const next = data.status === 1 ? 0 : 1
+          await fetch(`/api/posts/${data.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: next }) })
+          router.refresh()
+        }}>{data.status === 1 ? '设为草稿' : '发布'}</Button>
+        <Button size="sm" variant="outline" colorPalette="red" onClick={async () => {
+          await fetch(`/api/posts/${data.id}`, { method: 'DELETE' })
+          router.push('/')
+        }}>删除</Button>
       </Box>
       <Box p={5} borderWidth="1px" borderRadius="xl" boxShadow="sm" bg={{ base: 'white', _dark: 'gray.800' }}>
         <Heading as="h1" size="lg" mb={2}>{data.title}</Heading>
@@ -31,6 +43,7 @@ export default function PostDetail({ data }: { data: { id: number; title: string
           作者：{data.author || '匿名'}
           {' · '}发布时间：{formatDate(new Date(data.created_at))}
           {' · '}阅读：{data.views}
+          {' · '}{data.status === 1 ? '已发布' : '草稿'}
         </Text>
         <Text whiteSpace="pre-wrap" lineHeight="tall">{data.content}</Text>
         <Text mt={4} color={{ base: 'gray.500', _dark: 'gray.400' }}>标签：{tags.join('、') || '无'}</Text>

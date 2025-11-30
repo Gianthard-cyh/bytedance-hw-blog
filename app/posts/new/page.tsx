@@ -1,7 +1,7 @@
 "use client"
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Box, Heading, Input, Textarea, Button, Text, TagsInput } from '@chakra-ui/react'
+import { Box, Heading, Input, Textarea, Button, Text, TagsInput, Switch, HStack } from '@chakra-ui/react'
 import PageContainer from '@/app/components/PageContainer'
 import { FormControl, FormLabel } from '@chakra-ui/form-control'
 
@@ -12,6 +12,7 @@ export default function NewPostPage() {
   const [tags, setTags] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [published, setPublished] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -26,7 +27,7 @@ export default function NewPostPage() {
       const res = await fetch('/api/posts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: title.trim(), content: content.trim(), tags: tagsPayload })
+        body: JSON.stringify({ title: title.trim(), content: content.trim(), tags: tagsPayload, status: published ? 1 : 0 })
       })
       if (!res.ok) {
         const unknownData: unknown = await res.json().catch(() => ({}))
@@ -67,6 +68,18 @@ export default function NewPostPage() {
               <TagsInput.Input placeholder="输入或粘贴标签，回车添加" />
             </TagsInput.Control>
           </TagsInput.Root>
+        </FormControl>
+        <FormControl mb={4}>
+          <FormLabel>状态</FormLabel>
+          <HStack align="center" gap={3}>
+            <Switch.Root checked={!published} onCheckedChange={(d) => setPublished(!d.checked)} >
+              <Switch.HiddenInput />
+              <Switch.Control />
+              <Switch.Label>
+                草稿 
+              </Switch.Label>
+            </Switch.Root>
+          </HStack>
         </FormControl>
         <Button type="submit" colorPalette="blue" disabled={loading} borderRadius="xl">{loading ? '创建中…' : '创建'}</Button>
       </Box>

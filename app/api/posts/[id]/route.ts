@@ -20,7 +20,7 @@ export async function GET(req: NextRequest, ctx: RouteContext) {
   await ensureDb()
   const id = await parseId(req, ctx.params)
   if (id == null) return new Response('bad id', { status: 400 })
-  const row = await db.selectFrom('posts').selectAll().where('id', '=', id).executeTakeFirst()
+  const row = await db.selectFrom('posts').selectAll().where('id', '=', id).where('deleted_at', 'is', null).executeTakeFirst()
   if (!row) return new Response('not found', { status: 404 })
   const tagRows = await db
     .selectFrom('post_tags')
@@ -38,6 +38,7 @@ export async function GET(req: NextRequest, ctx: RouteContext) {
     title: row.title,
     content: row.content,
     author: row.author,
+    status: row.status,
     views: row.views + 1,
     created_at: row.created_at.toISOString(),
     updated_at: row.updated_at.toISOString(),
@@ -52,6 +53,7 @@ export async function PUT(req: NextRequest, ctx: RouteContext) {
   let title: string | undefined
   let content: string | undefined
   let tagsInput: string[] | undefined
+  let status: number | undefined
   try {
     const body = await req.json()
     title = body?.title as string | undefined
@@ -59,14 +61,21 @@ export async function PUT(req: NextRequest, ctx: RouteContext) {
     if (Array.isArray(body?.tags)) {
       tagsInput = body.tags.map((t: unknown) => String(t || '').trim()).filter(Boolean)
     }
+    if (typeof body?.status === 'number') {
+      status = body.status === 1 ? 1 : 0
+    } else if (typeof body?.status === 'string') {
+      const s = String(body.status).trim().toLowerCase()
+      status = s === 'published' ? 1 : s === 'draft' ? 0 : undefined
+    }
   } catch {
     return new Response(JSON.stringify({ error: 'bad_body' }), { status: 400 })
   }
-  if (!title && !content && !tagsInput) return new Response(JSON.stringify({ error: 'no_changes' }), { status: 400 })
+  if (!title && !content && !tagsInput && !status) return new Response(JSON.stringify({ error: 'no_changes' }), { status: 400 })
   const q = db.updateTable('posts')
-  const values: Partial<{ title: string; content: string }> = {}
+  const values: Partial<{ title: string; content: string; status: number }> = {}
   if (title) values.title = title
   if (content) values.content = content
+  if (status) values.status = status
   const res = await q
     .set(values)
     .set('updated_at', sql`now()`)
@@ -97,8 +106,12 @@ export async function DELETE(req: NextRequest, ctx: RouteContext) {
   await ensureDb()
   const id = await parseId(req, ctx.params)
   if (id == null) return new Response('bad id', { status: 400 })
-  const res = await db.deleteFrom('posts').where('id', '=', id).executeTakeFirst()
-  if (res.numDeletedRows === BigInt(0)) return new Response('not found', { status: 404 })
+  const res = await db
+    .updateTable('posts')
+    .set({ deleted_at: sql`now()`, updated_at: sql`now()` })
+    .where('id', '=', id)
+    .executeTakeFirst()
+  if (res.numUpdatedRows === BigInt(0)) return new Response('not found', { status: 404 })
   return new Response(null, { status: 204 })
 }
 
