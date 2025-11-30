@@ -1,6 +1,7 @@
 import PostListServer from './components/PostListServer'
 import SearchBar from './components/SearchBar'
 import PaginationClient from './components/PaginationClient'
+import TagFilterClient from './components/TagFilterClient'
 import { headers } from 'next/headers'
 import { Box, Heading, Button } from '@chakra-ui/react'
 import NextLink from 'next/link'
@@ -46,6 +47,9 @@ export default async function Home({ searchParams }: { searchParams?: Promise<Re
       </Box>
       <Box mb={3}>
         <SearchBar pageSize={data.pageSize} />
+      </Box>
+      <Box mb={3}>
+        <TagFilterClient pageSize={data.pageSize} />
       </Box>
       <PostListServer items={data.items} />
       <Box mt={4}>
