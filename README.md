@@ -32,12 +32,9 @@
 - 后端：
   - 框架：项目要求中要求使用Express.js，但是Next.js作为一个全栈框架，也可以进行后端API的开发，而且这也是非常主流的实现。这个项目目前的需求其实比较简单，并且是由我一个人维护，我认为现阶段没有必要分出Express.js的后端，因此直接使用Next.js作为后端框架。当然，为了项目后续的扩展和维护，我在项目中严格保证了所有的数据访问都是通过Next.js的API路由进行的（包括服务端组件），而不是在SSR代码中直接访问数据库。这样一来之后如果要换成Express.js后端，只需要把当前的后端部分迁移过去就可以了，本质上还是一个前后端分离的项目。
   - 数据库：PostgreSQL。项目中要求使用MySQL，但是我个人比较熟悉PostgreSQL，所以就选择了PostgreSQL作为数据库。项目中统一使用Kysely SQL构建器来进行数据库操作。Kysely作为一个抽象层屏蔽了数据库的具体实现，同时也提供了类型安全的查询接口，这在项目中是非常方便的。在之后如果要切换到MySQL，只需要对Kysely的数据库连接配置进行修改就可以了。
-### 架构与渲染
-- SSR 策略：
-  - 详情页：服务端获取数据后注入至客户端组件，兼顾 SSR 首屏与交互激活（`app/posts/[id]/page.tsx:24` → `app/components/PostDetail.tsx:1`）。
-  - 列表页：客户端渲染与分页交互（`app/page.tsx:15` → `app/components/PostList.tsx:1`）。若需严格 SSR，可将列表项渲染移至 Server Component 并避免在首帧使用 `window/localStorage`。
-- Hydration 稳定性：头部使用 `ClientOnly` 与 `suppressHydrationWarning`，避免首帧样式/状态差异导致的水合报错（`app/providers.tsx:10`、`app/Header.tsx:13`）。
-- 主题与美化：统一页面容器边距、卡片圆角，暗黑模式切换（`app/components/PageContainer.tsx:1`、`app/components/PostList.tsx:118`、`app/components/PostDetail.tsx:18`、`app/globals.css:28`）。
+### SSR实现
+- 详情页：详情页的SSR实现是比较简单的。因为没有交互组件，所以直接做成服务端组件即可。
+- 列表页：列表页的SSR相对复杂。因为列表页需要支持分页、搜索、标签筛选等功能。思考了一段时间，在列表做成服务端组件的情况应下，分页、搜索等数据应该怎么传递的问题。我最后决定将分页、搜索、标签筛选作为客户端组件，因为这些组件需要与用户交互。当用户在这些组件中进行操作时，组件会更新URL参数，从而触发列表页的重新渲染，此时列表组件在服务端就可以通过URL参数来知道当前的分页和筛选。
 
 ### 功能完成度
 - SSR 核心：
