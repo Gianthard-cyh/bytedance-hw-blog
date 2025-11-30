@@ -12,11 +12,12 @@ export default async function Home({ searchParams }: { searchParams?: Promise<Re
   const pageSize = Number(sp.pageSize ?? '10')
   const q = String(sp.q ?? '').trim()
   const tagsInput = sp.tags
-  const selectedTags = Array.isArray(tagsInput)
-    ? tagsInput.map((t) => String(t || '').trim()).filter(Boolean)
-    : typeof tagsInput === 'string' && tagsInput
-    ? [String(tagsInput).trim()]
-    : []
+  let selectedTags: string[] = []
+  if (Array.isArray(tagsInput)) {
+    selectedTags = tagsInput.flatMap((v) => String(v || '').split(',').map((t) => t.trim())).filter(Boolean)
+  } else if (typeof tagsInput === 'string' && tagsInput) {
+    selectedTags = String(tagsInput).split(',').map((t) => t.trim()).filter(Boolean)
+  }
 
   const h = await headers()
   const host = h.get('host') || 'localhost:3000'

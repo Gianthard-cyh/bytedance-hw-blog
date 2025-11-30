@@ -6,14 +6,17 @@ export default function SearchBar({ pageSize }: { pageSize: number }) {
   const router = useRouter()
   const sp = useSearchParams()
   const q = sp.get("q") || ""
-  const tags = sp.getAll("tags")
+  const tagsCsv = sp.get("tags") || ""
+  const tags = tagsCsv
+    ? tagsCsv.split(',').map((t) => t.trim()).filter(Boolean)
+    : []
 
   const submit = (nextQ: string) => {
     const params = new URLSearchParams()
     params.set("page", "1")
     params.set("pageSize", String(pageSize))
     if (nextQ.trim()) params.set("q", nextQ.trim())
-    tags.forEach((t) => params.append("tags", t))
+    if (tags.length) params.set("tags", tags.join(','))
     router.push(`/?${params.toString()}`)
   }
 

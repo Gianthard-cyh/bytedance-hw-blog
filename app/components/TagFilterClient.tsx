@@ -9,7 +9,8 @@ export default function TagFilterClient({ pageSize }: { pageSize: number }) {
   const router = useRouter()
   const sp = useSearchParams()
   const q = sp.get("q") || ""
-  const selected = sp.getAll("tags")
+  const tagsCsv = sp.get("tags") || ""
+  const selected = tagsCsv ? tagsCsv.split(',').map((t) => t.trim()).filter(Boolean) : []
   const [tags, setTags] = useState<TagInfo[]>([])
 
   useEffect(() => {
@@ -25,7 +26,7 @@ export default function TagFilterClient({ pageSize }: { pageSize: number }) {
     params.set("page", "1")
     params.set("pageSize", String(pageSize))
     if (q.trim()) params.set("q", q.trim())
-    nextTags.forEach((t) => params.append("tags", t))
+    if (nextTags.length) params.set("tags", nextTags.join(','))
     router.push(`/?${params.toString()}`)
   }
 
@@ -46,4 +47,3 @@ export default function TagFilterClient({ pageSize }: { pageSize: number }) {
     </HStack>
   )
 }
-
