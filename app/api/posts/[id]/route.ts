@@ -34,7 +34,7 @@ export async function GET(req: NextRequest, ctx: RouteContext) {
     .where('id', '=', id)
     .execute()
   return Response.json({
-    id: row.id,
+    id: Number(row.id),
     title: row.title,
     content: row.content,
     author: row.author,
@@ -87,13 +87,22 @@ export async function PUT(req: NextRequest, ctx: RouteContext) {
     const uniqueNames = Array.from(new Set(tagsInput))
     const tagIds: number[] = []
     for (const name of uniqueNames) {
-      const up = await db
-        .insertInto('tags')
-        .values({ name })
-        .onConflict((oc) => oc.column('name').doUpdateSet({ name }))
-        .returning('id')
+      const existing = await db
+        .selectFrom('tags')
+        .select('id')
+        .where('name', '=', name)
         .executeTakeFirst()
-      if (up?.id) tagIds.push(up.id)
+      if (existing?.id != null) {
+        tagIds.push(Number(existing.id))
+      } else {
+        const ins = await db
+          .insertInto('tags')
+          .values({ name })
+          .executeTakeFirst()
+        const rawNewId = (ins as unknown as { insertId?: unknown })?.insertId
+        const newId = typeof rawNewId === 'bigint' ? Number(rawNewId) : Number(rawNewId)
+        if (newId) tagIds.push(newId)
+      }
     }
     if (tagIds.length) {
       await db.insertInto('post_tags').values(tagIds.map((tagId) => ({ post_id: id, tag_id: tagId }))).execute()

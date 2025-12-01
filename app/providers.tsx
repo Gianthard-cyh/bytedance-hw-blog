@@ -5,11 +5,13 @@ import { ColorModeProvider } from "./components/ui/color-mode"
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <ChakraProvider value={defaultSystem}>
-      <ColorModeProvider>
-          <Header />
-        {children}
-      </ColorModeProvider>
-    </ChakraProvider>
+    <div>
+      <ChakraProvider value={defaultSystem}>
+        <ColorModeProvider>
+            <Header />
+          {children}
+        </ColorModeProvider>
+      </ChakraProvider>
+    </div>
   )
 }

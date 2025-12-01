@@ -1,24 +1,26 @@
 version: "3.8"
 
 services:
-  postgres:
-    image: postgres:16-alpine
-    container_name: bytedance-hw-blog-postgres
+  mysql:
+    image: mysql:8.0
+    container_name: bytedance-hw-blog-mysql
     restart: unless-stopped
     environment:
-      POSTGRES_DB: blog
-      POSTGRES_USER: blog
-      POSTGRES_PASSWORD: blog
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: blog
+      MYSQL_USER: blog
+      MYSQL_PASSWORD: blog
+    command: ["--default-authentication-plugin=mysql_native_password"]
     ports:
-      - "5432:5432"
+      - "3306:3306"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - mysqldata:/var/lib/mysql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U blog -d blog"]
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u blog -pblog --silent"]
       interval: 5s
       timeout: 5s
       retries: 10
-      start_period: 5s
+      start_period: 10s
 
 volumes:
-  pgdata:
+  mysqldata:

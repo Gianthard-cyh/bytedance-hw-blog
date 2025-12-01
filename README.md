@@ -7,7 +7,7 @@
   - 组件库：chakra-ui。之前在电商作业中选择了shadcn这样比较特殊的组件库，它的组件并非是预先打包好，而是生成在项目中。它的好处是可以根据项目非常自由地自定义组件，而传统的组件库要做到这一点必须要修改组件库的代码，缺点是组件放在项目中会有性能问题，因为每次渲染都要加载这些组件的代码。chakra-ui是之前了解过的比较成熟的组件库，所以希望能够尝试使用一下。
 - 后端：
   - 框架：项目要求中要求使用Express.js，但是Next.js作为一个全栈框架，也可以进行后端API的开发，而且这也是非常主流的实现。这个项目目前的需求其实比较简单，并且是由我一个人维护，我认为现阶段没有必要分出Express.js的后端，因此直接使用Next.js作为后端框架。当然，为了项目后续的扩展和维护，我在项目中严格保证了所有的数据访问都是通过Next.js的API路由进行的（包括服务端组件），而不是在SSR代码中直接访问数据库。这样一来之后如果要换成Express.js后端，只需要把当前的后端部分迁移过去就可以了，本质上还是一个前后端分离的项目。
-  - 数据库：PostgreSQL。项目中要求使用MySQL，但是我个人比较熟悉PostgreSQL，所以就选择了PostgreSQL作为数据库。项目中统一使用Kysely SQL构建器来进行数据库操作。Kysely作为一个抽象层屏蔽了数据库的具体实现，同时也提供了类型安全的查询接口，这在项目中是非常方便的。在之后如果要切换到MySQL，只需要对Kysely的数据库连接配置进行修改就可以了。
+  - 数据库：MySQL。项目统一使用 Kysely SQL 构建器进行数据库操作，屏蔽具体实现并提供类型安全的查询接口；如需切换其他数据库，仅需替换连接配置与少量方言差异。
 
 ### 项目结构
 - `app/`：Next.js 应用目录，包含路由、组件、API 路由等。
@@ -71,7 +71,7 @@
   - `posts.title`、`posts.created_at`：为了支持全文检索与按创建时间分页，分别创建了索引。
   - 唯一约束：`tags.name`、`post_tags(post_id, tag_id)`：确保标签名唯一，同时也防止重复关联。
   - 外键：`post_tags.post_id → posts.id`、`post_tags.tag_id → tags.id`（ON DELETE CASCADE）：确保关联的文章与标签在删除时也会级联删除。
-- 说明：运行环境为 PostgreSQL，表结构由 Kysely 自动初始化（`lib/init.ts`）。
+- 说明：运行环境为 MySQL，表结构由 Kysely 自动初始化（`lib/init.ts`）。
 
 ### 用户体验
 - 首屏：详情页服务端渲染，列表页支持快速分页与筛选交互。
@@ -83,7 +83,7 @@
 - 启动数据库（Docker）：`docker compose up -d`
 - 配置环境：在项目根目录创建 `.env.local` 并填写：
   ```
-  DATABASE_URL=postgresql://blog:blog@localhost:5432/blog
+  DATABASE_URL=mysql://blog:blog@localhost:3306/blog
   DATABASE_SSL=false
   ```
 - 首次访问自动建表：调用接口时触发 Kysely schema 初始化（`lib/init.ts:8`）。

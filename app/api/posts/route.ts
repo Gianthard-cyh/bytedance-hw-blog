@@ -144,22 +144,31 @@ export async function POST(req: NextRequest) {
     const inserted = await trx
       .insertInto('posts')
       .values({ title, content, status })
-      .returning('id')
       .executeTakeFirst()
-    const id = inserted?.id
+    const rawId = (inserted as unknown as { insertId?: unknown })?.insertId
+    const id = typeof rawId === 'bigint' ? Number(rawId) : Number(rawId)
     if (!id) throw new Error('insert_failed')
 
     if (tagsInput.length) {
       const uniqueNames = Array.from(new Set(tagsInput))
       const tagIds: number[] = []
       for (const name of uniqueNames) {
-        const up = await trx
-          .insertInto('tags')
-          .values({ name })
-          .onConflict((oc) => oc.column('name').doUpdateSet({ name }))
-          .returning('id')
+        const existing = await trx
+          .selectFrom('tags')
+          .select('id')
+          .where('name', '=', name)
           .executeTakeFirst()
-        if (up?.id) tagIds.push(up.id)
+        if (existing?.id != null) {
+          tagIds.push(Number(existing.id))
+        } else {
+          const ins = await trx
+            .insertInto('tags')
+            .values({ name })
+            .executeTakeFirst()
+          const rawNewId = (ins as unknown as { insertId?: unknown })?.insertId
+          const newId = typeof rawNewId === 'bigint' ? Number(rawNewId) : Number(rawNewId)
+          if (newId) tagIds.push(newId)
+        }
       }
       if (tagIds.length) {
         await trx

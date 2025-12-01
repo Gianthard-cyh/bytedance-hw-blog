@@ -1,6 +1,6 @@
 import { Kysely, Generated } from 'kysely'
-import { PostgresDialect } from 'kysely'
-import { Pool } from 'pg'
+import { MysqlDialect } from 'kysely'
+import mysql from 'mysql2'
 
 interface PostsTable {
   id: Generated<number>
@@ -32,23 +32,23 @@ interface DB {
   post_tags: PostTagsTable
 }
 
-const pgUrl = process.env.DATABASE_URL
+const dbUrl = process.env.DATABASE_URL
 
 declare global {
   var __db: Kysely<DB> | undefined
 }
 
-if (!pgUrl) {
-  throw new Error('DATABASE_URL is required (PostgreSQL).')
+if (!dbUrl) {
+  throw new Error('DATABASE_URL is required (MySQL).')
 }
 
-const pool = new Pool({
-  connectionString: pgUrl,
+const pool = mysql.createPool({
+  uri: dbUrl,
   ssl: process.env.DATABASE_SSL === 'true' ? { rejectUnauthorized: false } : undefined
 })
 
 export const db: Kysely<DB> = globalThis.__db ?? new Kysely<DB>({
-  dialect: new PostgresDialect({ pool })
+  dialect: new MysqlDialect({ pool })
 })
 
 if (!globalThis.__db) {
